@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BodyIndex Basics" 
-        Height="600" Width="700" 
+        Height="{Binding SystemParameters.PrimaryScreenHeight}" Width="{Binding SystemParameters.PrimaryScreenWidth}"
+        WindowStartupLocation="CenterScreen"
         Closing="MainWindow_Closing">
     <Window.Resources>
         <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e" />
@@ -36,19 +37,20 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid Margin="10 0 10 0">
+    <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0" Margin="0 0 0 20"/>
-        <Viewbox Grid.Row="1" HorizontalAlignment="Center">
-            <Image Source="{Binding ImageSource}" Stretch="UniformToFill" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"></ColumnDefinition>
+            <ColumnDefinition Width="5*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <DockPanel Grid.Row="0" Margin="0 0 0 0"/>
+        <Viewbox Grid.Row="1" Grid.Column="0" Margin="0 0 5 0" HorizontalAlignment="Left" Stretch="UniformToFill">
+            <Image Source="{Binding ImageSource}" />
         </Viewbox>
-        <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
-            <StatusBarItem Content="{Binding StatusText}" />
-        </StatusBar>
+        <Viewbox Grid.Row="1" Grid.Column="1" Margin="0 0 5 0" HorizontalAlignment="Right" Stretch="UniformToFill">
+            <Image Source="{Binding ImageSource}"/>
+        </Viewbox>
     </Grid>
 </Window>
