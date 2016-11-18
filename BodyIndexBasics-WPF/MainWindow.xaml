@@ -4,53 +4,15 @@
         Title="BodyIndex Basics" 
         Height="{Binding SystemParameters.PrimaryScreenHeight}" Width="{Binding SystemParameters.PrimaryScreenWidth}"
         WindowStartupLocation="CenterScreen"
-        Closing="MainWindow_Closing">
-    <Window.Resources>
-        <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e" />
-        <SolidColorBrush x:Key="KinectPurpleBrush" Color="#ff52318f" />
-        <SolidColorBrush x:Key="KinectBlueBrush" Color="#ff00BCF2" />
-        <Style TargetType="{x:Type Image}">
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-        </Style>
-        <Style TargetType="{x:Type Button}" x:Key="ScreenshotButton" >
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid>
-                            <StackPanel Orientation="Horizontal" Background="Transparent">
-                                <TextBlock x:Name="ScreenshotText" Text="{TemplateBinding Content}" TextAlignment="Left"  VerticalAlignment="Center" Foreground="{StaticResource KinectPurpleBrush}" FontSize="15" />
-                                <Grid Margin="9,0,0,0">
-                                    <Image x:Name="ScreenshotNormal" Source="Images\ScreenshotNormal.png" Stretch="None" HorizontalAlignment="Center" />
-                                    <Image x:Name="ScreenshotHover" Source="Images\ScreenshotHover.png" Stretch="None" HorizontalAlignment="Center" Visibility="Collapsed" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Visibility" Value="Collapsed" TargetName="ScreenshotNormal" />
-                                <Setter Property="Visibility" Value="Visible" TargetName="ScreenshotHover" />
-                                <Setter Property="Foreground" Value="{StaticResource KinectBlueBrush}" TargetName="ScreenshotText" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-    <Grid Margin="0,0,0,0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*"></ColumnDefinition>
-            <ColumnDefinition Width="5*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <DockPanel Grid.Row="0" Margin="0 0 0 0"/>
-        <Viewbox Grid.Row="1" Grid.Column="0" Margin="0 0 5 0" HorizontalAlignment="Left" Stretch="UniformToFill">
-            <Image Source="{Binding ImageSource}" />
-        </Viewbox>
-        <Viewbox Grid.Row="1" Grid.Column="1" Margin="0 0 5 0" HorizontalAlignment="Right" Stretch="UniformToFill">
-            <Image Source="{Binding ImageSource}"/>
-        </Viewbox>
+        Closing="MainWindow_Closing"
+        WindowState="Maximized">
+    <Grid x:Name="MainWindowGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+        <Image x:Name="kinectVideoImage" Width="1920" Height="1080"/>
+        <Canvas x:Name="bodyCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Canvas x:Name="pathCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Ellipse Height="559" Canvas.Left="341" Stroke="Black" StrokeThickness="40" Canvas.Top="374" Width="519" Opacity="0.5"/>
+        </Canvas>
+
+
     </Grid>
 </Window>

@@ -104,5 +104,9 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics.Properties {
                 return ResourceManager.GetString("SensorNotAvailableStatusText", resourceCulture);
             }
         }
+
+        public static string EventFileDescription { get; internal set; }
+        public static string EventFileFilter { get; internal set; }
+        public static string XefExtension { get; internal set; }
     }
 }
