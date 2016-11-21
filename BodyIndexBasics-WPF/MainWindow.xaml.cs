@@ -52,6 +52,11 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         /// </summary>
         private uint[] bodyIndexPixels = null;
 
+        // space for the recording
+        private Dictionary<int, Dictionary<JointType, CameraSpacePoint>> bodyIndexRecording = null;
+
+        private int currentFrameCount;
+
         Canvas body;
         IList<Body> bodies;
         CoordinateMapper cm;
@@ -76,6 +81,10 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             // allocate space to put the pixels being converted
             this.bodyIndexPixels = new uint[this.bodyIndexFrameDescription.Width * this.bodyIndexFrameDescription.Height];
 
+            // allocate space for the recording (not sure how long, so max for now)
+            this.bodyIndexRecording = new Dictionary<int, Dictionary<JointType, CameraSpacePoint>>();
+
+            this.currentFrameCount = 0;
 
             // create the colorFrameDescription from the ColorFrameSource using Bgra format
             FrameDescription colorFrameDescription = this.kinectSensor.ColorFrameSource.CreateFrameDescription(ColorImageFormat.Bgra);
@@ -93,6 +102,50 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             InitializeKinect(bodyCanvas, kinectVideoImage);
             // initialize the components (controls) of the window
             this.InitializeComponent();
+
+            // At this point, we are done recording. this.bodyIndexRecording contains the data we just recorded
+            // TODO get the .xef file to conform to a Dictionary<int, Dictionary<JointType, CameraSpacePoint>> type
+
+            // similarity_score = CompareExercise(this.bodyIndexRecording, previous_recording_as_correct_type) 
+
+        }
+        /// <summary>
+        /// Takes in two representations of an exercise and returns an integer indicating how similar they are.
+        /// </summary>
+        internal double CompareExercise(Dictionary<int, Dictionary<JointType, CameraSpacePoint>> input, Dictionary<int, Dictionary<JointType, CameraSpacePoint>> recorded)
+        {
+            Dictionary<JointType, CameraSpacePoint> inputJoints, recordedJoints;
+            int currTime = 0;
+            double score = 0.0; // similarity score, lower is better (more similar)
+            // while both inputs still have data
+            while (input[currTime] != null && recorded[currTime] != null)
+            {
+                inputJoints = input[currTime];
+                recordedJoints = recorded[currTime];
+                foreach(JointType jointType in inputJoints.Keys)
+                {
+                    if (!recordedJoints.ContainsKey(jointType))
+                    {
+                        // encode some error behavior here I guess, this is when the recording
+                        // is missing some data that the input contain
+                    }
+                    else
+                    {
+                        score += ComputeHistogram(inputJoints[jointType], recordedJoints[jointType]);
+                    }
+                }
+                currTime++;
+            }
+            return score;
+        }
+
+        internal double ComputeHistogram(CameraSpacePoint input, CameraSpacePoint recorded)
+        {
+            // This is a very naive program, and as such just computes the Euclidean distance between the points
+            // This algorithm can be tweaked by multiplying all values in an area (say we isolate the area around a knee) by a scalar
+            // This will result in the Euclidean distance for those values increasing by an amount directly proportional to the scalar,
+            // Effectively weighting those values higher than other values.
+            return Math.Sqrt(Math.Pow((input.X - recorded.X), 2) + Math.Pow((input.Y - recorded.Y), 2) + Math.Pow((input.Z - recorded.Z), 2));
         }
 
         /// <summary>
@@ -162,7 +215,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                         kinectVideoImage.Source = this.colorBitmap;
                     }
                 }
-
+            this.currentFrameCount++;
         }
 
         /// <summary>
@@ -173,6 +226,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             foreach (Body body in bodies)
             {
                 // a body that is tracked has a ID
+                int count = 0;
                 if (body.IsTracked)
                 {
                     IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
@@ -187,6 +241,8 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                         if (jointType == JointType.WristLeft || jointType == JointType.ElbowLeft)
                         {
                             CameraSpacePoint position = joints[jointType].Position;
+                            // We have X, Y, Z coordinates of the joint now (even better than R, G, B, Z because we don't have to do edge detection)
+                            this.bodyIndexRecording[this.currentFrameCount].Add(jointType, position);
                             // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video
                             ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
                             jointPoints[jointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);

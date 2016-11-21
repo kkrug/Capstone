@@ -13,3 +13,6 @@ C:\Users\Kenny\Documents\Senior\Capstone\BodyBasics-WPF\obj\Debug\Microsoft.Samp
 C:\Users\Kenny\Documents\Senior\Capstone\BodyBasics-WPF\obj\Debug\BodyBasics-WPF.csproj.GenerateResource.Cache
 C:\Users\Kenny\Documents\Senior\Capstone\BodyBasics-WPF\obj\Debug\BodyBasics-WPF.exe
 C:\Users\Kenny\Documents\Senior\Capstone\BodyBasics-WPF\obj\Debug\BodyBasics-WPF.pdb
+C:\Users\branc\Documents\GitHub\Capstone\BodyBasics-WPF\bin\AnyCPU\Debug\BodyBasics-WPF.exe.config
+C:\Users\branc\Documents\GitHub\Capstone\BodyBasics-WPF\obj\Debug\BodyBasics-WPF.exe
+C:\Users\branc\Documents\GitHub\Capstone\BodyBasics-WPF\obj\Debug\BodyBasics-WPF.pdb
