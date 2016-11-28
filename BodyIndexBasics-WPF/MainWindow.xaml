@@ -9,10 +9,8 @@
     <Grid x:Name="MainWindowGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
         <Image x:Name="kinectVideoImage" Width="1920" Height="1080"/>
         <Canvas x:Name="bodyCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top" />
-        <Canvas x:Name="pathCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top">
-            <Ellipse Height="559" Canvas.Left="341" Stroke="Black" StrokeThickness="40" Canvas.Top="374" Width="519" Opacity="0.5"/>
-        </Canvas>
-
-
+        <Canvas x:Name="pathCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Button x:Name="startButton" Content="Start" Width="200" Height="100" Click="start_clicked"/>
     </Grid>
+    
 </Window>

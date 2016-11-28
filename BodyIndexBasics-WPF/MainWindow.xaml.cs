@@ -64,10 +64,13 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         private const double JointThickness = 60;
         private readonly Brush trackedJointBrush = new SolidColorBrush(Color.FromArgb(255, 68, 192, 68));
         private readonly Brush inferredJointBrush = Brushes.Yellow;
-        private readonly Brush pathBrush = new SolidColorBrush(Color.FromArgb(100, 100, 100, 68));
+        private readonly Brush pathBrush = new SolidColorBrush(Color.FromArgb(150, 150, 150, 90));
         //The path the user needs to follow has been drawn
         private bool pathDrawn = false;
-
+        private bool exerciseStarted = false;
+        private CameraSpacePoint initialKnee;
+        private CameraSpacePoint initialFoot;
+        private List<CameraSpacePoint> footPoints = new List<CameraSpacePoint>();
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
@@ -182,6 +185,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                 if (frame != null)
                 {
                     bodyCanvas.Children.Clear();
+                 
                     bodies = new Body[frame.BodyFrameSource.BodyCount];
                     frame.GetAndRefreshBodyData(bodies);
                     this.TrackSkeleton(bodies);
@@ -238,20 +242,48 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                     {
                         // this gets the position of the joints in meters
                         // if aligning ankles 
-                        if (jointType == JointType.WristLeft || jointType == JointType.ElbowLeft)
+                        if (jointType == JointType.KneeLeft || jointType == JointType.FootLeft)
                         {
                             CameraSpacePoint position = joints[jointType].Position;
                             // We have X, Y, Z coordinates of the joint now (even better than R, G, B, Z because we don't have to do edge detection)
-                            this.bodyIndexRecording[this.currentFrameCount].Add(jointType, position);
-                            // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video
+                            //this.bodyIndexRecording[this.currentFrameCount].Add(jointType, position);
+                            // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video 
                             ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
                             jointPoints[jointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
-                            DrawCircleAt(joints, jointPoints, jointType);
+                            DrawCircleAt(joints, jointPoints, jointType); 
+                            if (exerciseStarted && jointType == JointType.FootLeft)
+                            {
+                                footPoints.Add(position);
+                            }      
                         }
+                        
                     }
+                    if (!pathDrawn && exerciseStarted)
+                    {
+                        JointType joint1 = JointType.KneeLeft;
+                        JointType joint2 = JointType.FootLeft;
+                        //Get initial points
+                        initialKnee = joints[joint1].Position;
+                        initialFoot = joints[joint2].Position;
+                        //DrawPath(jointPoints, joint1, joint2);
+                        pathDrawn = true;
+                    }
+                    
                 }
             }
 
+        }
+
+        private void start_clicked(object sender, RoutedEventArgs e)
+        {
+            if(exerciseStarted == true)
+            {
+                CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
+                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
+                DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
+
+            }
+            exerciseStarted = true;
         }
 
 
@@ -270,10 +302,10 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             {
                 drawBrush = this.trackedJointBrush;
             }
-  //          else if (trackingState == TrackingState.Inferred)
-  //          {
-  //              drawBrush = this.inferredJointBrush;
-  //          }
+            else if (trackingState == TrackingState.Inferred)
+            {
+                drawBrush = this.inferredJointBrush;
+            }
 
             if (drawBrush != null)
             {
@@ -285,6 +317,14 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         /// Draws an elipse
         /// </summary>
         private void DrawEllipse(Brush drawBrush, Point point, double JointThickness)
+        {
+            DrawEllipseOnCanvas(drawBrush, point, JointThickness, bodyCanvas);
+        }
+
+        /// <summary>
+        /// Draws an elipse
+        /// </summary>
+        private void DrawEllipseOnCanvas(Brush drawBrush, Point point, double JointThickness, Canvas c)
         {
             Ellipse jointEllipse = new Ellipse();
             jointEllipse.Stroke = drawBrush;
@@ -298,7 +338,46 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             Canvas.SetLeft(jointEllipse, pt.X - (JointThickness / 2));
             Canvas.SetTop(jointEllipse, pt.Y - (JointThickness / 2));
 
-            bodyCanvas.Children.Add(jointEllipse);
+            c.Children.Add(jointEllipse);
+        }
+
+        /// <summary>
+        /// Draws a path between two joints
+        /// </summary>
+        private void DrawPath(IReadOnlyDictionary<JointType, Point> jointPoints, JointType joint1, JointType joint2)
+        {
+            // draws a circle for the tip of the hand
+
+            Brush drawBrush = null;
+
+            if (jointPoints.ContainsKey(joint1) && jointPoints.ContainsKey(joint2))
+            {
+                drawBrush = this.pathBrush;
+                Point center = jointPoints[joint1];
+                Point p2 = jointPoints[joint2];
+                double radius = Math.Sqrt((Math.Pow(center.X - p2.X, 2) + Math.Pow(center.Y - p2.Y, 2)));
+                System.Windows.Shapes.Path arc_path = new System.Windows.Shapes.Path();
+                arc_path.Stroke = drawBrush;
+                arc_path.StrokeThickness = 50;
+                Canvas.SetLeft(arc_path, 0);
+                Canvas.SetTop(arc_path, 0);
+                PathGeometry pathGeometry = new PathGeometry();
+                PathFigure pathFigure = new PathFigure();
+                ArcSegment arcSegment = new ArcSegment();
+                arcSegment.IsLargeArc = false;
+                //Set start of arc
+                Point start = new Point(center.X + radius, center.Y);
+                pathFigure.StartPoint = start;//new Point(center.X + radius * Math.Cos(start_angle), center.Y + radius * Math.Sin(start_angle));
+                //set end point of arc.
+                arcSegment.Point = p2;
+                arcSegment.Size = new Size(radius, radius);
+                arcSegment.SweepDirection = SweepDirection.Clockwise;
+
+                pathFigure.Segments.Add(arcSegment);
+                pathGeometry.Figures.Add(pathFigure);
+                arc_path.Data = pathGeometry;
+                pathCanvas.Children.Add(arc_path);
+            }
         }
 
 
