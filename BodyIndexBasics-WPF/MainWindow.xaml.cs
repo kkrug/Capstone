@@ -71,6 +71,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         private CameraSpacePoint initialKnee;
         private CameraSpacePoint initialFoot;
         private List<CameraSpacePoint> footPoints = new List<CameraSpacePoint>();
+        private List<double> repScores = new List<double>();
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
@@ -230,7 +231,6 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             foreach (Body body in bodies)
             {
                 // a body that is tracked has a ID
-                int count = 0;
                 if (body.IsTracked)
                 {
                     IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
@@ -240,33 +240,21 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
 
                     foreach (JointType jointType in joints.Keys)
                     {
-                        // this gets the position of the joints in meters
-                        // if aligning ankles 
-                        if (jointType == JointType.KneeLeft || jointType == JointType.FootLeft)
-                        {
-                            CameraSpacePoint position = joints[jointType].Position;
-                            // We have X, Y, Z coordinates of the joint now (even better than R, G, B, Z because we don't have to do edge detection)
-                            //this.bodyIndexRecording[this.currentFrameCount].Add(jointType, position);
-                            // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video 
-                            ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
-                            jointPoints[jointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
-                            DrawCircleAt(joints, jointPoints, jointType); 
-                            if (exerciseStarted && jointType == JointType.FootLeft)
-                            {
-                                footPoints.Add(position);
-                            }      
-                        }
+          
+                        //-------------------------
+                        //THE FUNCTION THAT TRACKS THE JOINTS FOR A SPECIFIC EXERCISE
+                        //---------------------------
+                        legExtension(joints[jointType], jointPoints, joints);
                         
                     }
-                    if (!pathDrawn && exerciseStarted)
+                    //What to do before starting a repition
+                    if(!exerciseStarted)
                     {
-                        JointType joint1 = JointType.KneeLeft;
-                        JointType joint2 = JointType.FootLeft;
-                        //Get initial points
-                        initialKnee = joints[joint1].Position;
-                        initialFoot = joints[joint2].Position;
-                        //DrawPath(jointPoints, joint1, joint2);
-                        pathDrawn = true;
+                        legExtensionBeforeStart(joints);
+                    }
+                    //What to do during an exercise
+                    if(exerciseStarted) {
+                        legExtensionScoring();
                     }
                     
                 }
@@ -274,16 +262,96 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private void legExtension(Joint joint, Dictionary<JointType, Point> jointPoints, IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            // this gets the position of the joints in meters
+            // if aligning ankles 
+            if (joint.JointType == JointType.KneeLeft || joint.JointType == JointType.FootLeft)
+            {
+                CameraSpacePoint position = joint.Position;
+                // We have X, Y, Z coordinates of the joint now (even better than R, G, B, Z because we don't have to do edge detection)
+                //this.bodyIndexRecording[this.currentFrameCount].Add(jointType, position);
+                // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video 
+                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
+                jointPoints[joint.JointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
+                DrawCircleAt(joints, jointPoints, joint.JointType);
+                if (exerciseStarted && joint.JointType == JointType.FootLeft)
+                {
+                    footPoints.Add(position);
+                }
+            }
+        }
+     
+        private void legExtensionBeforeStart(IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            JointType joint1 = JointType.KneeLeft;
+            JointType joint2 = JointType.FootLeft;
+            //Get initial points
+            initialKnee = joints[joint1].Position;
+            initialFoot = joints[joint2].Position;
+            footPoints = new List<CameraSpacePoint>();
+            repScores.Add(0);
+        }
+
+        private void legExtensionScoring()
+        {
+            CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
+            //Calculate STD of X
+            double M = 0.0;
+            double S = 0.0;
+            int k = 1;
+            foreach (CameraSpacePoint point in footPoints)
+            {
+                double value = point.X;
+                double tmpM = M;
+                M += (value - tmpM) / k;
+                S += (value - tmpM) * (value - M);
+                k++;
+            }
+            double stdX = Math.Sqrt(S / (k - 2));
+            
+            Feedback.Content = (initialKnee.Y- maxFoot.Y);
+            string feedbackContent = "";
+            if (initialKnee.Y - maxFoot.Y < 0) {
+                feedbackContent += "Done with Rep.\n";
+            }
+            if (Math.Abs(stdX) > 0.045)
+            {
+                feedbackContent += "Stop moving your foot so much.";
+            }
+            double stdX_Score = -200 * stdX + 15;
+            //If the foot goes above the knee, automatically give a 10
+            double diffHeight = Math.Abs(maxFoot.Y - initialKnee.Y);
+            double heightScore = 10-(Math.Min((diffHeight / Math.Abs(initialFoot.Y-initialKnee.Y)) * 10, 10));
+            if (maxFoot.Y > initialKnee.Y)
+            {
+                heightScore = 10;
+            }
+            
+            if (stdX_Score > 10)
+            {
+                stdX_Score = 10;
+            }
+            else if (stdX_Score < 0 )
+            {
+                stdX_Score = 0;
+            }
+
+            double avgScore = (heightScore + stdX_Score) / 2;
+            repScores[repScores.Count - 1] = avgScore;
+            Feedback.Content = avgScore;
+            ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
+            DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
+        }
+
+
         private void start_clicked(object sender, RoutedEventArgs e)
         {
-            if(exerciseStarted == true)
-            {
-                CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
-                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
-                DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
+            exerciseStarted = !exerciseStarted;
 
-            }
-            exerciseStarted = true;
         }
 
 
