@@ -40,8 +40,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             mw.ExtensionReps = ExtensionReps;
             mw.ExtensionLR = ExtensionLR;
             mw.exercise = "extension";
-            Window exerciseWindow = new MainWindow();
-            exerciseWindow.Show();
+            mw.Show();
             this.Close();
         }
 
@@ -54,8 +53,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             mw.BendReps = BendReps;
             mw.BendLR = BendLR;
             mw.exercise = "bend";
-            Window exerciseWindow = new MainWindow();
-            exerciseWindow.Show();
+            mw.Show();
             this.Close();
         }
 
@@ -66,8 +64,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             MainWindow mw = new MainWindow();
             mw.SquatReps = SquatReps;
             mw.exercise = "squat";
-            Window exerciseWindow = new MainWindow();
-            exerciseWindow.Show();
+            mw.Show();
             this.Close();
         }
         private void extensionPlay_Click(object sender, RoutedEventArgs e)
