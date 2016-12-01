@@ -72,6 +72,13 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         private CameraSpacePoint initialFoot;
         private List<CameraSpacePoint> footPoints = new List<CameraSpacePoint>();
         private List<double> repScores = new List<double>();
+
+        public int ExtensionReps;
+        public string ExtensionLR;
+        public int BendReps;
+        public string BendLR;
+        public int SquatReps;
+        public string exercise;
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
@@ -294,59 +301,71 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             initialFoot = joints[joint2].Position;
             footPoints = new List<CameraSpacePoint>();
             repScores.Add(0);
+
         }
 
         private void legExtensionScoring()
         {
-            CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
-            //Calculate STD of X
-            double M = 0.0;
-            double S = 0.0;
-            int k = 1;
-            foreach (CameraSpacePoint point in footPoints)
-            {
-                double value = point.X;
-                double tmpM = M;
-                M += (value - tmpM) / k;
-                S += (value - tmpM) * (value - M);
-                k++;
-            }
-            double stdX = Math.Sqrt(S / (k - 2));
-            
-            Feedback.Content = (initialKnee.Y- maxFoot.Y);
-            string feedbackContent = "";
-            if (initialKnee.Y - maxFoot.Y < 0) {
-                feedbackContent += "Done with Rep.\n";
-            }
-            if (Math.Abs(stdX) > 0.045)
-            {
-                feedbackContent += "Stop moving your foot so much.";
-            }
-            double stdX_Score = -200 * stdX + 15;
-            //If the foot goes above the knee, automatically give a 10
-            double diffHeight = Math.Abs(maxFoot.Y - initialKnee.Y);
-            double heightScore = 10-(Math.Min((diffHeight / Math.Abs(initialFoot.Y-initialKnee.Y)) * 10, 10));
-            if (maxFoot.Y > initialKnee.Y)
-            {
-                heightScore = 10;
-            }
-            
-            if (stdX_Score > 10)
-            {
-                stdX_Score = 10;
-            }
-            else if (stdX_Score < 0 )
-            {
-                stdX_Score = 0;
-            }
+            int exerciseNum = ExtensionReps;
+            double[] scoreArray = new double[exerciseNum];
+            int i = 0;
+            //while (i < exerciseNum)
+            //{
+                CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
+                //Calculate STD of X
+                double M = 0.0;
+                double S = 0.0;
+                int k = 1;
+                foreach (CameraSpacePoint point in footPoints)
+                {
+                    double value = point.X;
+                    double tmpM = M;
+                    M += (value - tmpM) / k;
+                    S += (value - tmpM) * (value - M);
+                    k++;
+                }
+                double stdX = Math.Sqrt(S / (k - 2));
 
-            double avgScore = (heightScore + stdX_Score) / 2;
-            repScores[repScores.Count - 1] = avgScore;
-            Feedback.Content = avgScore;
-            ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
-            DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
+                Feedback.Content = (initialKnee.Y - maxFoot.Y);
+                string feedbackContent = "";
+                if (initialKnee.Y - maxFoot.Y < 0)
+                {
+                    feedbackContent += "Done with Rep.\n";
+                }
+                if (Math.Abs(stdX) > 0.045)
+                {
+                    feedbackContent += "Stop moving your foot so much.";
+                }
+                double stdX_Score = -200 * stdX + 15;
+                //If the foot goes above the knee, automatically give a 10
+                double diffHeight = Math.Abs(maxFoot.Y - initialKnee.Y);
+                double heightScore = 10 - (Math.Min((diffHeight / Math.Abs(initialFoot.Y - initialKnee.Y)) * 10, 10));
+                if (maxFoot.Y > initialKnee.Y)
+                {
+                    heightScore = 10;
+                }
+
+                if (stdX_Score > 10)
+                {
+                    stdX_Score = 10;
+                }
+                else if (stdX_Score < 0)
+                {
+                    stdX_Score = 0;
+                }
+
+                double avgScore = (heightScore + stdX_Score) / 2;
+                //if () {//done with rep
+                 //   scoreArray[i] = avgScore;
+                   // i++;
+                //}
+                repScores[repScores.Count - 1] = avgScore;
+                Feedback.Content = avgScore.ToString() + feedbackContent;
+                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
+                DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
+
+            //} //may want to move end of while to after done with rep
         }
-
 
         private void start_clicked(object sender, RoutedEventArgs e)
         {

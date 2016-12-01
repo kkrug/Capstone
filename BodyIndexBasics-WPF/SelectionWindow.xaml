@@ -5,13 +5,53 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Microsoft.Samples.Kinect.BodyIndexBasics"
         mc:Ignorable="d"
-        Title="SelectionWindow" Height="600" Width="400"
+        Title="Kinect Physical Therapy" Height="600" Width="402.667"
         WindowStartupLocation="CenterScreen">
-    
+
     <Grid>
         <Label x:Name="label" Content="Kinect Physcial Therapy" HorizontalAlignment="Center" Margin="38,10,38.333,0" VerticalAlignment="Top" Height="54" Width="317" FontSize="30"/>
-        <Label x:Name="label1" Content="Select an exercise:" HorizontalAlignment="Left" Margin="38,69,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="button" Content="Knee Exercise" HorizontalContentAlignment="Left" Padding="10,0,0,0" HorizontalAlignment="Left" Margin="38,100,0,0" VerticalAlignment="Top" Width="229" Height="38" Click="button_Click" BorderThickness="1"/>
-
+        <Label x:Name="label1" Content="Select an exercise:" HorizontalAlignment="Left" Margin="20,69,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label2" Content="Select a leg:" HorizontalAlignment="Left" Margin="140,69,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label3" Content="Select reps:" HorizontalAlignment="Left" Margin="225,69,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label4" Content="Play example:" HorizontalAlignment="Left" Margin="300,69,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="button1" Content="Knee Extension" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="20,142,0,0" VerticalAlignment="Top" Width="105" Height="38" Click="Extension_Click" BorderThickness="1"/>
+        <Button x:Name="button2" Content="Knee Bend" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="20,242,0,0" VerticalAlignment="Top" Width="105" Height="38" Click="Bend_Click" BorderThickness="1"/>
+        <Button x:Name="button3" Content="Squat" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="20,342,0,0" VerticalAlignment="Top" Width="105" Height="38" Click="Squat_Click" BorderThickness="1"/>
+        <ComboBox x:Name="LR1" Margin="146,142,165,382" Height="38" Width="75" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="1" SelectedIndex="0">
+            <ComboBoxItem x:Name="L1" Content="Left"/>
+            <ComboBoxItem x:Name="R1" Content="Right"/>
+        </ComboBox>
+        <ComboBox x:Name="LR2" Margin="146,242,165,282" Height="38" Width="75" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="1" SelectedIndex="0">
+            <ComboBoxItem x:Name="L2" Content="Left"/>
+            <ComboBoxItem x:Name="R2" Content="Right"/>
+        </ComboBox>
+        <Label x:Name="both" Content="Both" HorizontalContentAlignment="Center" Margin="146,342,165,182" Height="38" Width="75"></Label>
+        <ComboBox x:Name="Reps1" Margin="246,142,100,382" Height="38" Width="42" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" BorderThickness="1" SelectedIndex="0">
+            <ComboBoxItem x:Name="reps15" Content="5"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps110" Content="10"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps115" Content="15"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps120" Content="20"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps125" Content="25"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps130" Content="30"></ComboBoxItem>
+        </ComboBox>
+        <ComboBox x:Name="Reps2" Margin="246,242,100,282" Height="38" Width="42" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" BorderThickness="1" SelectedIndex="0">
+            <ComboBoxItem x:Name="reps25" Content="5"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps210" Content="10"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps215" Content="15"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps220" Content="20"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps225" Content="25"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps230" Content="30"></ComboBoxItem>
+        </ComboBox>
+        <ComboBox x:Name="Reps3" Margin="246,342,100,182" Height="38" Width="42" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" BorderThickness="1" SelectedIndex="0">
+            <ComboBoxItem x:Name="reps35" Content="5"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps310" Content="10"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps315" Content="15"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps320" Content="20"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps325" Content="25"></ComboBoxItem>
+            <ComboBoxItem x:Name="reps330" Content="30"></ComboBoxItem>
+        </ComboBox>
+        <Button x:Name="extensionPlay" Content="Play" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="317,142,0,0" VerticalAlignment="Top" Width="50" Height="38" Click="extensionPlay_Click" BorderThickness="1"/>
+        <Button x:Name="bendPlay" Content="Play" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="317,242,0,0" VerticalAlignment="Top" Width="50" Height="38" Click="bendPlay_Click" BorderThickness="1"/>
+        <Button x:Name="squatPlay" Content="Play" HorizontalContentAlignment="Center" Padding="0,0,0,0" HorizontalAlignment="Left" Margin="317,342,0,0" VerticalAlignment="Top" Width="50" Height="38" Click="squatPlay_Click" BorderThickness="1"/>
     </Grid>
 </Window>
