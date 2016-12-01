@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Microsoft.Samples.Kinect.BodyIndexBasics"
         mc:Ignorable="d"
         Title="Knee Extension Video" Height="300" Width="300">
-    <Grid>
+    <Grid Background="#484848">
         <MediaElement Name="KneeExtensionVideo" 
               Source="C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\extension.mp4" Width="300" Height="200" LoadedBehavior="Play" UnloadedBehavior="Manual" Margin="-7,10,0.333,60.667">
         </MediaElement>

@@ -415,6 +415,14 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                 DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
 
             //} //may want to move end of while to after done with rep
+
+            //continue to feedback window
+            //FeedbackWindow fw = new FeedbackWindow();
+            //fw.exercise = exercise;
+            //fw.repScores = repScores;
+            //fw.avgScore = avgScore;
+            //fw.Show();
+            //this.Close();
         }
 
         private void start_clicked(object sender, RoutedEventArgs e)

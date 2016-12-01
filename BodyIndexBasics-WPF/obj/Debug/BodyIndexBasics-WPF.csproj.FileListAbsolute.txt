@@ -61,3 +61,5 @@ C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\SquatVide
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\BendVideo.g.cs
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\SquatVideo.baml
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\BendVideo.baml
+C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\FeedbackWindow.g.cs
+C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\FeedbackWindow.baml
