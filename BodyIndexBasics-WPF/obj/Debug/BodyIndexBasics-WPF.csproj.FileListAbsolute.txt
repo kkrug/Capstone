@@ -61,3 +61,12 @@ C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\SquatVide
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\BendVideo.g.cs
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\SquatVideo.baml
 C:\Users\Kenny\Documents\GitHub\Capstone\BodyIndexBasics-WPF\obj\Debug\BendVideo.baml
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\bin\AnyCPU\Debug\Microsoft.Kinect.VisualGestureBuilder.dll
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\bin\AnyCPU\Debug\Microsoft.Kinect.VisualGestureBuilder.xml
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\SquatVideo.g.cs
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\BendVideo.g.cs
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\ExtensionVideo.g.cs
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\BodyIndexBasics-WPF_Content.g.cs
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\SquatVideo.baml
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\BendVideo.baml
+C:\Users\Gurtaj\Downloads\Capstone-master\Capstone-master\BodyIndexBasics-WPF\obj\Debug\ExtensionVideo.baml

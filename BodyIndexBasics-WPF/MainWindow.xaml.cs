@@ -68,19 +68,38 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         //The path the user needs to follow has been drawn
         private bool pathDrawn = false;
         private bool exerciseStarted = false;
+        private bool midRep = false;
+
+        //Initial point of the knee before a rep
         private CameraSpacePoint initialKnee;
+        //Initial point of the foot before the rep
         private CameraSpacePoint initialFoot;
+        //Counts the number of frames we spend over the threshold for starting a rep
+        private int framesOverThreshold = 0;
+        //Frames to spend over threshold before counting as rep
+        private int frameThreshold = 30;
         private CameraSpacePoint handPos;
         private CameraSpacePoint shoulderPos;
         private List<CameraSpacePoint> footPoints = new List<CameraSpacePoint>();
-        private List<double> repScores = new List<double>();
+        private List<double> repScores = new List<double>(new double[] { 0 });
 
-        public int ExtensionReps;
-        public string ExtensionLR;
-        public int BendReps;
-        public string BendLR;
-        public int SquatReps;
+        //Squat globals
+        private CameraSpacePoint startLeftKnee;
+        private CameraSpacePoint startRightKnee;
+        private CameraSpacePoint startNeck;
+        private CameraSpacePoint startHips;
+        private double minKneeY;
+        private double minHipsY;
+        private List<CameraSpacePoint> kneePoints = new List<CameraSpacePoint>();
+        private List<CameraSpacePoint> neckPoints = new List<CameraSpacePoint>();
+
+        public string leftOrRight;
+   
+        //The current exercise
         public string exercise;
+
+        public int repsToDo;
+
 
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
@@ -89,6 +108,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         {
             // get the kinectSensor object
             this.kinectSensor = KinectSensor.GetDefault();
+
 
             this.bodyIndexFrameDescription = this.kinectSensor.BodyIndexFrameSource.FrameDescription;
 
@@ -117,10 +137,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             // initialize the components (controls) of the window
             this.InitializeComponent();
 
-            // At this point, we are done recording. this.bodyIndexRecording contains the data we just recorded
-            // TODO get the .xef file to conform to a Dictionary<int, Dictionary<JointType, CameraSpacePoint>> type
-
-            // similarity_score = CompareExercise(this.bodyIndexRecording, previous_recording_as_correct_type) 
+            
 
         }
         /// <summary>
@@ -169,7 +186,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         {
             this.body = bodyCanvas;
             this.kinectVideoImage = kinectVideoImage;
-
+           
             // get the coordinate mapper
             this.cm = this.kinectSensor.CoordinateMapper;
 
@@ -247,39 +264,232 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
 
                     // convert the joint points to depth (display) space
                     Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
-
+                    
                     foreach (JointType jointType in joints.Keys)
                     {
-          
-                        //-------------------------
-                        //THE FUNCTION THAT TRACKS THE JOINTS FOR A SPECIFIC EXERCISE
-                        //---------------------------
-                        legExtension(joints[jointType], jointPoints, joints);
-                        
+                        //The function that tracks joints for the current exercise
+                        trackJointsFor(exercise, joints[jointType],jointPoints, joints);
                     }
                     //What to do before starting a repition
                     if(!exerciseStarted)
                     {
-                        legExtensionBeforeStart(joints);
+                        beforeExercise(exercise, joints);
+                        //If the either hand is above the head, start the exercise session
+                        if(joints[JointType.HandRight].Position.Y > joints[JointType.Head].Position.Y || joints[JointType.HandLeft].Position.Y > joints[JointType.Head].Position.Y)
+                        {
+                            exerciseStarted = true;  
+                        }
                     }
+                    //If we are done with our reps
+                    if ((repScores.Count()) == repsToDo + 1)
+                    {
+                        this.Close();
+                    }
+
                     //What to do during an exercise
-                    if(exerciseStarted) {
-                        legExtensionScoring(joints);
+                    if (exerciseStarted) {
+                        scoreExercise(exercise,joints);
                     }
+
                     
                 }
             }
 
         }
 
+
+        // <summary>
+        // Finds the proper joint tracking function for an exercise
+        // </summary>
+        private void trackJointsFor(string currExercise, Joint joint, Dictionary<JointType, Point> jointPoints, IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            JointType jointType = joint.JointType;
+            
+            if (currExercise == "extension" || currExercise == "bend")
+            {
+                legExtension(joint, jointPoints, joints);
+            }
+            else if(currExercise == "squat")
+            {
+                squatTrack(joint, jointPoints, joints);
+            }
+        }
+
+        // <summary>
+        // What to do before an exercise is started for the current exercise
+        // </summary>
+        private void beforeExercise(string currExercise, IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            if (currExercise == "extension" || currExercise == "bend")
+            {
+                legExtensionBeforeStart(joints);
+            }
+            else if(currExercise == "squat")
+            {
+                squatBeforeStart(joints);
+            }
+        }
+
+        // <summary>
+        // How to score an exercise
+        // </summary>
+        private void scoreExercise(string currExercise, IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            if (currExercise == "extension")
+            {
+                legExtensionScoring(joints);
+            }
+            else if (currExercise == "bend")
+            {
+                legBendScoring(joints);
+            }
+            else if (currExercise == "squat")
+            {
+                squatScoring(joints);
+            }
+        }
+
         /// <summary>
-        /// 
+        /// how to track the squat form
+        /// </summary>
+        private void squatTrack(Joint joint, Dictionary<JointType, Point> jointPoints, IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            if (joint.JointType == JointType.KneeLeft || joint.JointType == JointType.KneeRight || joint.JointType == JointType.SpineBase || joint.JointType ==JointType.SpineShoulder)
+            {
+                CameraSpacePoint position = joint.Position;
+                //Set the minimum knee and hip val
+                if (joint.JointType == JointType.KneeLeft || joint.JointType == JointType.KneeRight)
+                {
+                    if (minKneeY > joints[joint.JointType].Position.Y)
+                    {
+                        minKneeY = joints[joint.JointType].Position.Y;
+                    }
+                    if(exerciseStarted && joint.JointType == JointType.KneeLeft)
+                    {
+                        kneePoints.Add(position);
+                    }
+                }
+                if (joint.JointType == JointType.SpineBase)
+                {
+                    minHipsY = Math.Min(minHipsY, joints[joint.JointType].Position.Y);
+                }
+                if (exerciseStarted && joint.JointType == JointType.SpineShoulder)
+                {
+                    neckPoints.Add(position);
+                }
+                
+                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
+                jointPoints[joint.JointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
+                DrawCircleAt(joints, jointPoints, joint.JointType, bodyCanvas);
+                pathCanvas.Children.Clear();
+                DrawCircleAt(joints, jointPoints, joint.JointType, pathCanvas);
+            }
+        }
+
+        ///<summary>
+        ///What do do before a squat
+        /// </summary>
+        private void squatBeforeStart(IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            //Starting z for spine
+            // z's for the knees
+            //y for the knees and the hips
+            startLeftKnee = joints[JointType.KneeLeft].Position;
+            startRightKnee = joints[JointType.KneeRight].Position;
+            startNeck = joints[JointType.SpineShoulder].Position;
+            startHips = joints[JointType.SpineBase].Position;
+            kneePoints = new List<CameraSpacePoint>();
+            kneePoints.Add(startLeftKnee);
+            neckPoints = new List<CameraSpacePoint>();
+            neckPoints.Add(startNeck);
+        }
+
+        /// <summary>
+        ///  Calcualte score for a squat
+        /// </summary>
+        private void squatScoring(IReadOnlyDictionary<JointType, Joint> joints)
+        {
+            if (midRep == true)
+            {
+                //std of knee.z-neck.z
+                //Calculate STD of knee.z-neck.z
+                double M = 0.0;
+                double S = 0.0;
+                int k = 1;
+                for (int i = 0; i < Math.Min(kneePoints.Count, neckPoints.Count); i++)
+                {
+                    double value = kneePoints[i].Z - neckPoints[i].Z;
+                    double tmpM = M;
+                    M += (value - tmpM) / k;
+                    S += (value - tmpM) * (value - M);
+                    k++;
+                }
+                {
+
+                }
+                double stdZ = Math.Sqrt(S / (k - 2));
+                double stdZ_Score = -200 * stdZ + 15;
+                if (stdZ_Score > 10)
+                {
+                    stdZ_Score = 10;
+                }
+                else if (stdZ_Score < 0)
+                {
+                    stdZ_Score = 0;
+                }
+                //If hips.y == knee.y at bottom
+                double startKneeY = (startLeftKnee.Y + startRightKnee.Y) / 2;
+                double initialDiffKneeHip = (startHips.Y - startKneeY);
+                double minimumDiff = minHipsY - minKneeY;
+                double depthScore = (1 - (minimumDiff / initialDiffKneeHip)) * 10;
+                if (depthScore < 0)
+                {
+                    depthScore = 0;
+                }
+                else if (depthScore > 10)
+                {
+                    depthScore = 10;
+                }
+
+                double avgScore = (depthScore + stdZ_Score) / 2;
+                repScores[repScores.Count - 1] = avgScore;
+                //Coming back up
+                if (startHips.Y - 0.1 < joints[JointType.SpineBase].Position.Y && framesOverThreshold > frameThreshold)
+                {
+                    midRep = false;
+                    repScores.Add(0);
+                    MidRep.Content = repScores.Count - 1;
+                    framesOverThreshold = 0;
+                }
+                else if (startHips.Y - 0.1 < joints[JointType.SpineBase].Position.Y)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
+            else
+            {
+                //Check if we are starting a rep
+                if (startHips.Y - 0.1 > joints[JointType.SpineBase].Position.Y && framesOverThreshold > frameThreshold)
+                {
+                    midRep = true;
+                    MidRep.Content = repScores.Count - 1;
+                    framesOverThreshold += 1;
+                }
+                else if (startHips.Y - 0.1 > joints[JointType.SpineBase].Position.Y)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
+        }
+
+        /// <summary>
+        ///  Function that tracks the joints for a leg extension exercise
         /// </summary>
         private void legExtension(Joint joint, Dictionary<JointType, Point> jointPoints, IReadOnlyDictionary<JointType, Joint> joints)
         {
             // this gets the position of the joints in meters
             // if aligning ankles
-            if (ExtensionLR == "Left")
+            if (leftOrRight == "Left")
             {
                 if (joint.JointType == JointType.KneeLeft || joint.JointType == JointType.FootLeft)
                 {
@@ -289,14 +499,16 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                     // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video 
                     ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
                     jointPoints[joint.JointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
-                    DrawCircleAt(joints, jointPoints, joint.JointType);
+                    DrawCircleAt(joints, jointPoints, joint.JointType, bodyCanvas);
+                    pathCanvas.Children.Clear();
+                    DrawCircleAt(joints, jointPoints, joint.JointType, pathCanvas);
                     if (exerciseStarted && joint.JointType == JointType.FootLeft)
                     {
                         footPoints.Add(position);
                     }
                 }
             }
-            else if (ExtensionLR == "Right")
+            else if (leftOrRight == "Right")
             {
                 if (joint.JointType == JointType.KneeRight || joint.JointType == JointType.FootRight)
                 {
@@ -306,7 +518,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                     // this converts the 3D camera space point in meters to a 2D pixel on the RGB camera/video 
                     ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(position);
                     jointPoints[joint.JointType] = new Point(colorSpacePoint.X, colorSpacePoint.Y);
-                    DrawCircleAt(joints, jointPoints, joint.JointType);
+                    DrawCircleAt(joints, jointPoints, joint.JointType, bodyCanvas);
                     if (exerciseStarted && joint.JointType == JointType.FootRight)
                     {
                         footPoints.Add(position);
@@ -314,17 +526,20 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                 }
             }
         }
-     
+
+        /// <summary>
+        ///  What to do before a leg extension exercise
+        /// </summary>
         private void legExtensionBeforeStart(IReadOnlyDictionary<JointType, Joint> joints)
         {
-            if (ExtensionLR == "Left")
+            if (leftOrRight == "Left")
             {
                 JointType joint1 = JointType.KneeLeft;
                 JointType joint2 = JointType.FootLeft;
                 initialKnee = joints[joint1].Position;
                 initialFoot = joints[joint2].Position;
             }
-            else if (ExtensionLR == "Right")
+            else if (leftOrRight == "Right")
             {
                 JointType joint1 = JointType.KneeRight;
                 JointType joint2 = JointType.FootRight;
@@ -332,23 +547,24 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                 initialFoot = joints[joint2].Position;
             }
             footPoints = new List<CameraSpacePoint>();
-            repScores.Add(0);
-
+            footPoints.Add(initialFoot);
+            
         }
-
+        /// <summary>
+        ///  How to score a leg extension
+        /// </summary>
         private void legExtensionScoring(IReadOnlyDictionary<JointType, Joint> joints)
         {
-            //ExtensionReps is number of reps
-            ExtensionReps = ExtensionReps;
+            if (midRep == true)
+            {
+                //Calculate the score for this rep
+                JointType rightHand = JointType.HandRight;
+                JointType rightShoulder = JointType.ShoulderRight;
+                handPos = joints[rightHand].Position;
+                shoulderPos = joints[rightShoulder].Position;
+                double[] scoreArray = new double[repsToDo];
+                int i = 0;
 
-            JointType rightHand = JointType.HandRight;
-            JointType rightShoulder = JointType.ShoulderRight;
-            handPos = joints[rightHand].Position;
-            shoulderPos = joints[rightShoulder].Position;
-            double[] scoreArray = new double[ExtensionReps];
-            int i = 0;
-           // while (i < 5)
-            //{
                 CameraSpacePoint maxFoot = footPoints.OrderBy(t => t.Y).Last();//Max Y value
                 //Calculate STD of X
                 double M = 0.0;
@@ -393,41 +609,177 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
                 }
 
                 double avgScore = (heightScore + stdX_Score) / 2;
-                //while (maxFoot.Y > initialFoot.Y) {
-                //if (maxFoot.Y > initialFoot.Y) {
-                    //if (joints[footLeft].Position.Y <= initialFoot.Y)
-                    if(handPos.Y > shoulderPos.Y)
-                    {//done with rep
-                        scoreArray[i] = avgScore;
-                        i++;
-                        //break;
-                        if(i >= ExtensionReps)
-                    {
-                        exerciseStarted = !exerciseStarted;
-                        Feedback.Content = "paydirt";
-                    }
-                    }
-                //}
                 repScores[repScores.Count - 1] = avgScore;
                 Feedback.Content = avgScore;
-
                 ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
-                DrawEllipseOnCanvas(inferredJointBrush, new Point(colorSpacePoint.X, colorSpacePoint.Y), 50, pathCanvas);
-
-            //} //may want to move end of while to after done with rep
+                //Check if the rep is complete
+                double footPos;
+                if (leftOrRight == "Right")
+                {
+                    footPos = joints[JointType.FootRight].Position.Y;
+                }
+               else
+                {
+                    footPos = joints[JointType.FootLeft].Position.Y;
+                }
+                if (initialFoot.Y + 0.1 > footPos && framesOverThreshold > frameThreshold)
+                {
+                    midRep = false;
+                    repScores.Add(0);
+                    MidRep.Content = repScores.Count-1;//string.Join(",", repScores.ToArray());
+                    framesOverThreshold = 0;
+                }
+                else if(initialFoot.Y + 0.1 > joints[JointType.FootLeft].Position.Y)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
+            //Check if starting a rep
+            else
+            {
+                double footPos;
+                if (leftOrRight == "Right")
+                {
+                    footPos = joints[JointType.FootRight].Position.Y;
+                }
+                else
+                {
+                    footPos = joints[JointType.FootLeft].Position.Y;
+                }
+                if (initialFoot.Y + 0.1 < footPos && framesOverThreshold > frameThreshold)
+                {
+                    midRep = true;
+                    MidRep.Content = repScores.Count-1;
+                    framesOverThreshold += 1;
+                }
+                else if (initialFoot.Y + 0.1 < footPos)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
         }
 
-        private void start_clicked(object sender, RoutedEventArgs e)
+        private void legBendScoring(IReadOnlyDictionary<JointType, Joint> joints)
         {
-            exerciseStarted = !exerciseStarted;
 
+            if (midRep == true)
+            {
+                //Calculate the score for this rep
+                JointType rightHand = JointType.HandRight;
+                JointType rightShoulder = JointType.ShoulderRight;
+                handPos = joints[rightHand].Position;
+                shoulderPos = joints[rightShoulder].Position;
+                double[] scoreArray = new double[repsToDo];
+                int i = 0;
+                
+                footPoints = footPoints.OrderBy(t => t.Y).ToList();
+                
+                int cutoff = (int)((double)footPoints.Count * 0.05);
+                int count = footPoints.Count - cutoff;
+                CameraSpacePoint maxFoot = footPoints.GetRange(0, count).Last();//Max Y value
+                //Calculate STD of X
+                footPoints = footPoints.OrderBy(t => t.X).ToList();
+                
+                cutoff = (int)((double)footPoints.Count * 0.025);
+                count = footPoints.Count - cutoff*2;
+                footPoints = footPoints.GetRange(cutoff, count);
+                double M = 0.0;
+                double S = 0.0;
+                int k = 1;
+                foreach (CameraSpacePoint point in footPoints)
+                {
+                    double value = point.X-initialFoot.X;
+                    double tmpM = M;
+                    M += (value - tmpM) / k;
+                    S += (value - tmpM) * (value - M);
+                    k++;
+                }
+                double stdX = Math.Sqrt(S / (k - 2));
+                double stdMult = stdX * 1000;
+                Feedback.Content = (initialKnee.Y - maxFoot.Y);
+                string feedbackContent = "";
+                if (initialKnee.Y - maxFoot.Y < 0)
+                {
+                    feedbackContent += "Done with Rep.\n";
+                }
+                if (Math.Abs(stdX) > 0.045)
+                {
+                    feedbackContent += "Stop moving your foot so much.";
+                }
+                double stdX_Score = -200 * stdX + 15;
+                //If the foot goes above the knee, automatically give a 10
+                double diffHeight = Math.Abs((maxFoot.Y - initialKnee.Y));
+                double initialDiff = Math.Abs(initialKnee.Y) - Math.Abs(initialFoot.Y);
+                double maxHeight = Math.Abs(maxFoot.Y)+initialDiff*0.05 - Math.Abs(initialFoot.Y);
+                double percentCovered = maxHeight / initialDiff;
+                double heightScore = Math.Min(percentCovered * 10,10);
+                
+
+                if (stdX_Score > 10)
+                {
+                    stdX_Score = 10;
+                }
+                else if (stdX_Score < 0)
+                {
+                    stdX_Score = 0;
+                }
+
+                double avgScore = (heightScore + stdX_Score) / 2;
+                repScores[repScores.Count - 1] = avgScore;
+                Feedback.Content = avgScore;
+                ColorSpacePoint colorSpacePoint = this.cm.MapCameraPointToColorSpace(maxFoot);
+                //Check if the rep is complete
+                double footPos;
+                if (leftOrRight == "Right")
+                {
+                    footPos = joints[JointType.FootRight].Position.Y;
+                }
+                else
+                {
+                    footPos = joints[JointType.FootLeft].Position.Y;
+                }
+                if (initialFoot.Y + 0.1 > footPos && framesOverThreshold > frameThreshold)
+                {
+                    midRep = false;
+                    repScores.Add(0);
+                    MidRep.Content = repScores.Count - 1;//string.Join(",", repScores.ToArray());
+                    framesOverThreshold = 0;
+                }
+                else if (initialFoot.Y + 0.1 > footPos)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
+            //Check if starting a rep
+            else
+            {
+                double footPos;
+                if (leftOrRight == "Right")
+                {
+                    footPos = joints[JointType.FootRight].Position.Y;
+                }
+                else
+                {
+                    footPos = joints[JointType.FootLeft].Position.Y;
+                }
+                if (initialFoot.Y + 0.1 < footPos && framesOverThreshold > frameThreshold)
+                {
+                    midRep = true;
+                    MidRep.Content = repScores.Count - 1;
+                    framesOverThreshold += 1;
+                }
+                else if (initialFoot.Y + 0.1 < footPos)
+                {
+                    framesOverThreshold += 1;
+                }
+            }
         }
 
 
         /// <summary>
-        /// Draws a circle on the specified joint
+        /// Draws a circle on the specified joint at a path
         /// </summary>
-        private void DrawCircleAt(IReadOnlyDictionary<JointType, Joint> joints, Dictionary<JointType, Point> jointPoints, JointType jointType)
+        private void DrawCircleAt(IReadOnlyDictionary<JointType, Joint> joints, Dictionary<JointType, Point> jointPoints, JointType jointType, Canvas c)
         {
             // draws a circle for the tip of the hand
 
@@ -446,7 +798,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
 
             if (drawBrush != null)
             {
-                this.DrawEllipse(drawBrush, jointPoints[jointType], JointThickness);
+                this.DrawEllipseOnCanvas(drawBrush, jointPoints[jointType], JointThickness, c);
             }
         }
 
