@@ -540,6 +540,14 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
         {
             // this gets the position of the joints in meters
             // if aligning ankles
+            if (exercise == "bend" && leftOrRight == "Left")
+            {
+                leftOrRight = "Right";
+            }
+            else if (exercise == "bend" && leftOrRight == "Right")
+            {
+                leftOrRight = "Left";
+            }
             if (leftOrRight == "Left")
             {
                 if (joint.JointType == JointType.KneeLeft || joint.JointType == JointType.FootLeft)
