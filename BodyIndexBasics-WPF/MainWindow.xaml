@@ -8,10 +8,12 @@
         WindowState="Maximized">
     <Grid x:Name="MainWindowGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
         <Image x:Name="kinectVideoImage" Width="1920" Height="1080"/>
-        <Label Name="Feedback" Content="" Width="1920" Height="300" FontSize="42" VerticalAlignment="Top"/>
+        <Label x:Name="started" Width="155" Height="50" Content="Exercise Started" FontSize="20" VerticalContentAlignment="Center" Background="#484848" Foreground="#66FF99" Margin="-229,-78,835.333,533.333" Panel.ZIndex="100" Visibility="Hidden"/>
+        <Label x:Name="replabel" Width="155" Height="50" Content="Rep Number:" FontSize="24" VerticalContentAlignment="Center" Background="#484848" Foreground="#66FF99" Margin="-229,-28,835.333,483.333" Panel.ZIndex="10"/>
+        <Label x:Name="scorelabel" Width="155" Height="50" Content="Score:" FontSize="24" VerticalContentAlignment="Center" Background="#484848" Foreground="#66FF99" Margin="-229,62,835.333,393.333" Panel.ZIndex="10"/>
+        <Label x:Name="MidRep" Content="" Width="155" Height="75" FontSize="42" VerticalContentAlignment="Center" Background="#484848" Foreground="#66FF99" Margin="-229,4,835.333,426.333" Panel.ZIndex="1"/>
+        <Label Name="Feedback" Content="" Width="155" Height="75" FontSize="42" VerticalContentAlignment="Center" Background="#484848" Foreground="#66FF99" Margin="-229,88,835.333,342.333" Panel.ZIndex="1"/>
         <Canvas x:Name="bodyCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top" />
         <Canvas x:Name="pathCanvas" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top" />
-        <Button x:Name="startButton" Content="Start" Width="200" Height="100" Click="start_clicked"/>
     </Grid>
-    
 </Window>

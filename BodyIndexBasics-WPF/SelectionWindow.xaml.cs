@@ -37,8 +37,8 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             ExtensionReps = Convert.ToInt32(selectedItem.Content);
             ExtensionLR = ((ComboBoxItem)LR1.SelectedItem).Content.ToString();
             MainWindow mw = new MainWindow();
-            mw.ExtensionReps = ExtensionReps;
-            mw.ExtensionLR = ExtensionLR;
+            mw.repsToDo = ExtensionReps;
+            mw.leftOrRight = ExtensionLR;
             mw.exercise = "extension";
             mw.Show();
             this.Close();
@@ -50,8 +50,8 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             BendReps = Convert.ToInt32(selectedItem.Content);
             BendLR = ((ComboBoxItem)LR2.SelectedItem).Content.ToString();
             MainWindow mw = new MainWindow();
-            mw.BendReps = BendReps;
-            mw.BendLR = BendLR;
+            mw.repsToDo = BendReps;
+            mw.leftOrRight = BendLR;
             mw.exercise = "bend";
             mw.Show();
             this.Close();
@@ -62,7 +62,7 @@ namespace Microsoft.Samples.Kinect.BodyIndexBasics
             ComboBoxItem selectedItem = (ComboBoxItem)Reps3.SelectedValue;
             SquatReps = Convert.ToInt32(selectedItem.Content);
             MainWindow mw = new MainWindow();
-            mw.SquatReps = SquatReps;
+            mw.repsToDo = SquatReps;
             mw.exercise = "squat";
             mw.Show();
             this.Close();

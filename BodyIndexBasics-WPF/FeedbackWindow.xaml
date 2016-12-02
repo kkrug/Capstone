@@ -5,15 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Microsoft.Samples.Kinect.BodyIndexBasics"
         mc:Ignorable="d"
-        Title="Feedback" Height="300" Width="300">
+        Title="Feedback" Height="400" Width="500">
     <Grid Background="#484848">
-        <Label x:Name="results" Content="Results for " Margin="0,0,197.333,239.667" Foreground="#66FF99" FontSize="18"></Label>
-        <Label x:Name="exerciseName" Content="Knee Extension" Margin="89,0,28.333,239.667" Foreground="#66FF99" FontSize="18"></Label>
-        <Label x:Name="repsTitle" Content="Reps:" Margin="0,31,249.333,211.667" Foreground="#66FF99" FontSize="14" VerticalContentAlignment="Top"></Label>
-        <Label x:Name="scores" Content="rep scores go here" Margin="0,59,0.333,27.667" Foreground="#66FF99" FontSize="12" VerticalContentAlignment="Top"></Label>
-        <Label x:Name="avgTitle" Content="Average Score:" Margin="0,243,188.333,-0.333" Foreground="#66FF99" FontSize="14" VerticalContentAlignment="Top"></Label>
-        <Label x:Name="average" Content="avg score" Margin="105,243,118.333,-0.333" Foreground="#66FF99" FontSize="14" VerticalContentAlignment="Top"></Label>
-        <Button x:Name="menuBtn" Content="Return to Menu" Margin="197,248,0.333,-0.333" Click="menuBtn_Click"></Button>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="491*"/>
+        </Grid.ColumnDefinitions>
+        <Label x:Name="results" Content="Results for " Margin="0,0,197.333,311.667" Foreground="#66FF99" FontSize="24" Grid.ColumnSpan="2"></Label>
+        <Label x:Name="exerciseName" Content="exercise name" Margin="118,0,152.333,311.667" Foreground="#66FF99" FontSize="24" Grid.Column="1"></Label>
+        <Label x:Name="repsTitle" Content="Reps:" Margin="0,45,247.333,273.667" Foreground="#66FF99" FontSize="20" VerticalContentAlignment="Top" Grid.Column="1"/>
+        <Label x:Name="scores" Content="rep scores go here" Margin="27,84,28.333,111.667" Foreground="#66FF99" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1"></Label>
+        <Label x:Name="avgTitle" Content="Average Score:" Margin="18,264,349.333,57.667" Foreground="#66FF99" FontSize="16" VerticalContentAlignment="Top" Grid.Column="1"/>
+        <Label x:Name="average" Content="avg score" Margin="142,264,239.333,57.667" Foreground="#66FF99" FontSize="16" VerticalContentAlignment="Top" Grid.Column="1"></Label>
+        <Button x:Name="menuBtn" Content="Return to Menu" Margin="324,254,28.333,60.667" Click="menuBtn_Click" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Column="1"/>
+
     </Grid>
 </Window>
